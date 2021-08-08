@@ -1,0 +1,31 @@
+#実行するコマンド:$ docker-compose up --build -d && docker-compose exec -u root jenkins chown root:docker /var/run/docker.sock
+# 注意:テキストの保存はUTF-8をすること。
+# Dockerログイン:docker exec -i -t -u root jenkins_jenkins_1 bash
+# トラブルシューティング
+# [touch: cannot touch ‘/var/jenkins_home/copy_reference_file.log’Permission denied]発生時
+# whoami
+# ↑でユーザ名のidを検索
+# id ユーザ名
+# ↑でid出力
+# 以下のように1000jenkinsのボリュームディレクトリを指定
+# sudo chown -R 1000:1000 jenkins_home
+#
+version: "3"
+
+services:
+    jenkins:
+        build: .
+        ports:
+            - 8081:8080
+        volumes:
+# 1.2.1.
+            - ./jenkins_home:/var/jenkins_home
+# 1.2.2.
+            - /var/run/docker.sock:/var/run/docker.sock:rw
+# 環境変数の設定
+        environment:
+            # 参考サイト:dockerでJenkinsおじさんを日本のtimezoneで起動する https://sekailab.com/wp/2015/07/05/docker-jenkins-timezone-tokyo/
+            #  Javaの起動オプションに’-Duser.timezone=Asia/Tokyo’,ついでにUTF-8で日本語のログ出力にも対応
+            - JAVA_OPTS='-Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8'
+            - TZ=Asia/Tokyo
+            
