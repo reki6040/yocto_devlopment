@@ -1098,11 +1098,11 @@ iface eth0 inet static
 
 #### 1.1.3.3.USB-WIFIをNetwork追加する
 
-今回利用するUSB-WIFI用のアダプタは以下です。
+今回利用するUSB-WIFI用のアダプタは以下です。  
 [IO-DATA WN-G150UM](https://www.iodata.jp/product/network/adp/wn-g150um/)
 
-まずはDriverがすでに組み込まれているかチェックする。
-Driverは以下の参考①より、「rtl8192cu」です。
+まずはDriverがすでに組み込まれているかチェックする。  
+Driverは以下の参考①より、「rtl8192cu」です。  
 [参考①](https://gist.github.com/nidate/48818c520f49f8f0d883)
 
 raspberryパイへログインすると以下でした
@@ -1176,8 +1176,8 @@ cat conf/bblayers.conf
 #確認:/home/reki/vol/x86_64/meta-myConfigが追加されていること
 ```
 
-まずは「/etc/udev/rules.d」が属するパッケージの確認します。
-/etc/udev/rules.dはディレクトリです。
+まずは「/etc/udev/rules.d」が属するパッケージの確認します。  
+/etc/udev/rules.dはディレクトリです。  
 追加するファイルは「network_drivers.rules」なので既存のパッケージ上には存在しないので、新しく作成しますが、参考までに近いパスを確認します。
 
 ``` sh
@@ -1198,8 +1198,8 @@ find . -name eudev*.bb
 cat ./meta/recipes-core/udev/eudev_3.2.14.bb | grep file://local.rules
 ```
 
-↑の「file://local.rules \」を参考に「network_drivers.rules」を追加していく。
-これをbackupしてRenameして書き換えようと思う。
+↑の「file://local.rules \」を参考に「network_drivers.rules」を追加していく。  
+これをbackupしてRenameして書き換えようと思う。  
 ↑のlsコマンドでpathを検索すると以下
 
 ``` sh
@@ -1208,8 +1208,9 @@ find . -name local.rules
 ./eudev/local.rules
 ```
 
-つまり./meta/recipes-core/udev/eudev/local.rulesになる。
-以下はeudevをコピーとユーザ独自定義を追加する。先ほどのbackupした「local.rules」を利用する
+つまり./meta/recipes-core/udev/eudev/local.rulesになる。  
+以下はeudevをコピーとユーザ独自定義を追加する。  
+先ほどのbackupした「local.rules」を利用する
 
 ``` sh
 
@@ -1243,10 +1244,10 @@ ls build_scarthgap_gen_rpi/tmp/work/arm1176jzfshf-vfp-poky-linux-gnueabi/eudev/3
 
 ```
 
-同じように今度はmodprobe.confを追加します。
-まずは「/etc/modprobe.d/*」が属するパッケージの確認します。
-/etc/modprobe.dはディレクトリです。
-追加するファイルは「network_drivers.conf」なので既存のパッケージ上には存在しないので、新しく作成しますが、参考までに近いパスを確認します。
+同じように今度はmodprobe.confを追加します。  
+まずは「/etc/modprobe.d/*」が属するパッケージの確認します。  
+/etc/modprobe.dはディレクトリです。  
+追加するファイルは「network_drivers.conf」なので既存のパッケージ上には存在しないので、新しく作成しますが、参考までに近いパスを確認します。  
 
 ``` sh
 oe-pkgdata-util find-path /etc/modprobe.d/*
@@ -1314,8 +1315,8 @@ bitbake network-drivers -c cleanall
 bitbake network-drivers
 ```
 
-コマンドやツール類であるlsblk,lsusb,wpa_supplicant、iw、iwconfigをinstallする
-iw,iwconfig,wpa-supplicantはwifiクライアント用のツールをインストールする必要があります。
+コマンドやツール類であるlsblk,lsusb,wpa_supplicant、iw、iwconfigをinstallする。  
+iw,iwconfig,wpa-supplicantはwifiクライアント用のツールをインストールする必要があります。  
 あと、diskの見えるかするlsblkやlsmod関連のツールもusb機器を判別するためにinstallします。
 
 ``` sh
@@ -1493,7 +1494,7 @@ reboot
 
 #### 1.1.3.4.USB-WIFIとLAN Network BrigeしてEthernet Converter化
 
-LANであるeth0 → 無線WIFIのwlan0へインターネット接続ができるようにしたい。
+LANであるeth0 → 無線WIFIのwlan0へインターネット接続ができるようにしたい。  
 セキュリティの問題もあるが機能実現を優先
 
 ``` sh
@@ -1599,15 +1600,16 @@ cat /proc/sys/net/bridge/bridge-nf-call-ip6tables
 
 ```
 
-以下はchatGPTでQAした結果 セキュリティについて参考
-セキュリティに関連する相談です。
-以下のコマンドで192.168.3.0のサブネットからwlan0を通してインターネット接続できました。 echo "1" > /proc/sys/net/ipv4/ip_forward iptables -t nat -A POSTROUTING -o wlan0 -s 192.168.3.0/24 -j MASQUERADE
-セキュリティについて改善点ありますか？
+以下はchatGPTでQAした結果 セキュリティについて参考  
+セキュリティに関連する相談です。  
+以下のコマンドで192.168.3.0のサブネットからwlan0を通してインターネット接続できました。  
+ echo "1" > /proc/sys/net/ipv4/ip_forward iptables -t nat -A POSTROUTING -o wlan0 -s 192.168.3.0/24 -j MASQUERADE
+セキュリティについて改善点ありますか？  
 
-改善点:
--1. フィルタリングルールの追加
-現状の設定では、192.168.3.0/24 のクライアントすべてが wlan0 経由でインターネットにアクセスできます。
-不要な通信を制限するために、iptables にフィルタリングルールを追加しましょう。
+改善点:  
+-1. フィルタリングルールの追加  
+現状の設定では、192.168.3.0/24 のクライアントすべてが wlan0 経由でインターネットにアクセスできます。  
+不要な通信を制限するために、iptables にフィルタリングルールを追加しましょう。  
 例えば、特定のポートだけ許可し、不要なトラフィックを遮断する:
 
 ``` sh
@@ -1616,26 +1618,26 @@ iptables -A FORWARD -s 192.168.3.0/24 -d 0.0.0.0/0 -p tcp --dport 443 -j ACCEPT
 iptables -A FORWARD -s 192.168.3.0/24 -j DROP
 ```
 
-このルールにより、HTTP/HTTPS の通信のみ許可し、それ以外のトラフィックは遮断されます。
+このルールにより、HTTP/HTTPS の通信のみ許可し、それ以外のトラフィックは遮断されます。  
 
--2. IP Spoofing 防止 (rp_filter の有効化)
-IPアドレスの偽装を防ぐために、rp_filter を有効にしましょう。
+-2. IP Spoofing 防止 (rp_filter の有効化)  
+IPアドレスの偽装を防ぐために、rp_filter を有効にしましょう。  
 
 ``` sh
 echo "1" > /proc/sys/net/ipv4/conf/all/rp_filter
 echo "1" > /proc/sys/net/ipv4/conf/default/rp_filter
 ```
 
-- これにより、不正なIPアドレスを使用してパケットを送信することを防止できます
+- これにより、不正なIPアドレスを使用してパケットを送信することを防止できます  
 
--3. ログ記録の追加
-どの通信が行われているかを監視するためにログを追加できます。
+-3. ログ記録の追加  
+どの通信が行われているかを監視するためにログを追加できます。  
 
 ``` sh
 iptables -A FORWARD -s 192.168.3.0/24 -j LOG --log-prefix "FORWARD-DROP: "
 ```
 
-- これにより、許可されていないパケットが syslog に記録されるようになります。
+- これにより、許可されていないパケットが syslog に記録されるようになります。  
 
 -4. パケット数制限 (rate limiting) の導入
 
@@ -1644,9 +1646,9 @@ iptables -A FORWARD -p tcp --syn -m limit --limit 10/sec -j ACCEPT
 iptables -A FORWARD -p tcp --syn -j DROP
 ```
 
-- これにより、TCPの新規接続試行を1秒間に10回までに制限できます。
+- これにより、TCPの新規接続試行を1秒間に10回までに制限できます。  
 
--5. MACアドレスによるフィルタリング
+-5. MACアドレスによるフィルタリング  
 
 許可したデバイスのみがインターネットに接続できるようにする:
 
@@ -1795,32 +1797,32 @@ drwxr-xr-x 7 reki reki 4096 Mar  9  2018 ..
 
 参考文献
 https://mickey-happygolucky.hatenablog.com/entry/2025/03/13/084357
-↑そのままだとLICENSEとかでエラー出たりするので少し手直しする
+↑そのままだとLICENSEとかでエラー出たりするので少し手直しする  
 
-ただし、initramfsで起動することは一般的なものとすこし異なる。
-一般的なinittamfsはkernel付帯、もしくはcpioイメージでgz圧縮して/dev/ramやtempfsへ展開し起動。
-今回はUbuntuのLiveイメージで使用されるCaspterのtoramオプションのような挙動をさせたい。
-↑をやりたい理由は設定したファイルを通常は不揮発性としたい。
-また、設定をどうしても固定化したい場合のみDiskの/をmountして書き込むようにさせたい。
-設定の保存するイメージはL2/L3SWのruuning-configやsave-configのような感じです。
+ただし、initramfsで起動することは一般的なものとすこし異なる。  
+一般的なinittamfsはkernel付帯、もしくはcpioイメージでgz圧縮して/dev/ramやtempfsへ展開し起動。  
+今回はUbuntuのLiveイメージで使用されるCaspterのtoramオプションのような挙動をさせたい。  
+↑をやりたい理由は設定したファイルを通常は不揮発性としたい。  
+また、設定をどうしても固定化したい場合のみDiskの/をmountして書き込むようにさせたい。  
+設定の保存するイメージはL2/L3SWのruuning-configやsave-configのような感じです。  
 
-これができると何が良いか？
- →誤った設定しても再起動すればまっさらになれる。
- →不揮発性のDiskを誰かがmount操作するようにしない前提でウィルス入りされても再起動すればなくなる。
-  [書き込み可能性を減らしたいなら一度起動したらSDカード抜くという手もある]
- →不揮発性のDiskへの書き込みが頻度が減るため、Disk摩耗が減る。
+これができると何が良いか？  
+ →誤った設定しても再起動すればまっさらになれる。  
+ →不揮発性のDiskを誰かがmount操作するようにしない前提でウィルス入りされても再起動すればなくなる。  
+  [書き込み可能性を減らしたいなら一度起動したらSDカード抜くという手もある]  
+ →不揮発性のDiskへの書き込みが頻度が減るため、Disk摩耗が減る。  
  
-以下で言うルートFSとは/の場所ではなくこれから起動されるDisk[HDDやSSDなど]の/のこと。
-本来initfamfsの/がルートFSということが正しいが、今回は起動させたいDiskの/をRAMへコピーしRAMを/にして起動させる。
+以下で言うルートFSとは/の場所ではなくこれから起動されるDisk[HDDやSSDなど]の/のこと。  
+本来initfamfsの/がルートFSということが正しいが、今回は起動させたいDiskの/をRAMへコピーしRAMを/にして起動させる。  
 
-1.ルートFSをマウント
-2.ルートFSのサイズをduで計算
-3.bcでサイズを1.3倍
-4.tmpfs(RAM)を/dev/shmにマウント
-5.ルートFSのファイルをすべて/dev/shmにコピー
-6.ルートFSをアンマウント
-7.tmpfsをルートFSがマウントされていた場所にmoveマウント
-8.exitしてmountしたtempfsを起動。
+1.ルートFSをマウント  
+2.ルートFSのサイズをduで計算  
+3.bcでサイズを1.3倍  
+4.tmpfs(RAM)を/dev/shmにマウント  
+5.ルートFSのファイルをすべて/dev/shmにコピー  
+6.ルートFSをアンマウント  
+7.tmpfsをルートFSがマウントされていた場所にmoveマウント  
+8.exitしてmountしたtempfsを起動。  
 
 ``` sh
 cd /home/reki/vol/x86_64
@@ -1983,4 +1985,3 @@ Only in /etc: volatile.cache
 #またmountして直接変更もできる。
 
 ```
-
